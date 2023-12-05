@@ -1,6 +1,6 @@
 # Data-Processing-Storage
 
-How to run: 
+How to run:
 In the terminal, run "javac Main.java" and then "java Main". 
 The Main function implements the commands detailed in the assignment instructions and outputs results of each command to the terminal, but these commands can be added to, deleted, and/or modified accordingly. 
 No other setup is required. 
