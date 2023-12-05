@@ -3,31 +3,27 @@ import java.util.Map;
 
 interface InMemoryDB {
     int get(String key);
-
     void put(String key, int val);
-
     void beginTransaction();
-
     void commit() throws IllegalStateException;
-
     void rollback() throws IllegalStateException;
 }
 
 class InMemoryDBImpl implements InMemoryDB {
-    private Map<String, Integer> mainState;
-    private Map<String, Integer> transactionState;
-    private boolean isInTransaction;
+    private Map<String, Integer> mainMap;
+    private Map<String, Integer> transactionMap;
+    private boolean inTransaction;
 
     public InMemoryDBImpl() {
-        mainState = new HashMap<>();
-        transactionState = new HashMap<>();
-        isInTransaction = false;
+        mainMap = new HashMap<>();
+        transactionMap = new HashMap<>();
+        inTransaction = false;
     }
 
     @Override
     public int get(String key) {
-        if (transactionState.containsKey(key)) {
-            return transactionState.get(key);
+        if (transactionMap.containsKey(key)) {
+            return transactionMap.get(key);
         } 
         else {
             return -1;
@@ -36,44 +32,44 @@ class InMemoryDBImpl implements InMemoryDB {
 
     @Override
     public void put(String key, int val) {
-        if (!isInTransaction) {
-            throw new IllegalStateException("Transaction not in progress");
+        if (!inTransaction) {
+            throw new IllegalStateException("Transaction is not in progress");
         }
-        mainState.put(key, val);
+        mainMap.put(key, val);
         System.out.println("Sets value of: " + key + " to " + val);
     }
 
     @Override
     public void beginTransaction() {
-        if (isInTransaction) {
-            throw new IllegalStateException("Transaction already in progress");
+        if (inTransaction) {
+            throw new IllegalStateException("Transaction is already in progress");
         }
-        transactionState.clear();
-        mainState.clear();
-        isInTransaction = true;
-        System.out.println("Starts new transaction");
+        transactionMap.clear();
+        mainMap.clear();
+        inTransaction = true;
+        System.out.println("Transaction started");
     }
 
     @Override
     public void commit() throws IllegalStateException {
-        if (!isInTransaction) {
+        if (!inTransaction) {
             throw new IllegalStateException("No open transaction to commit");
         }
-        // mainState.putAll(transactionState);
-        transactionState.putAll(mainState);
-        // mainState.clear();
-        isInTransaction = false;
-        System.out.println("commits open transaction");
+        // mainMap.putAll(transactionMap);
+        transactionMap.putAll(mainMap);
+        // mainMap.clear();
+        inTransaction = false;
+        System.out.println("Transaction committed");
     }
 
     @Override
     public void rollback() throws IllegalStateException {
-        if (!isInTransaction) {
-            throw new IllegalStateException("No ongoing transaction to rollback");
+        if (!inTransaction) {
+            throw new IllegalStateException("No transaction to rollback");
         }
-        transactionState.clear();
-        isInTransaction = false;
-        System.out.println("TRANSACION ROLLBACKED");
+        transactionMap.clear();
+        inTransaction = false;
+        System.out.println("Transaction Rollbacked");
     }
     
 }
@@ -81,11 +77,10 @@ class InMemoryDBImpl implements InMemoryDB {
 public class Main {
     public static void main(String[] args) {
         InMemoryDB inmemoryDB = new InMemoryDBImpl();
-
-        System.out.println(inmemoryDB.get("A")); // should return null
+        System.out.println(inmemoryDB.get("A")); 
 
         try {
-            inmemoryDB.put("A", 5); // should throw an error because a transaction is not in progress
+            inmemoryDB.put("A", 5); 
         } 
         catch (IllegalStateException e) {
             System.out.println("Error: " + e.getMessage());
@@ -93,28 +88,28 @@ public class Main {
 
         inmemoryDB.beginTransaction();
         inmemoryDB.put("A", 5);
-        System.out.println(inmemoryDB.get("A")); // should return null
+        System.out.println(inmemoryDB.get("A"));
 
         inmemoryDB.put("A", 6);
         inmemoryDB.commit();
-        System.out.println(inmemoryDB.get("A")); // should return 6
+        System.out.println(inmemoryDB.get("A")); 
 
         try {
-            inmemoryDB.commit(); // should throw an error
+            inmemoryDB.commit(); 
         } catch (IllegalStateException e) {
             System.out.println("Error: " + e.getMessage());
         }
 
         try {
-            inmemoryDB.rollback(); // should throw an error
+            inmemoryDB.rollback(); 
         } catch (IllegalStateException e) {
             System.out.println("Error: " + e.getMessage());
         }
 
-        System.out.println(inmemoryDB.get("B")); // should return null
+        System.out.println(inmemoryDB.get("B")); 
         inmemoryDB.beginTransaction();
         inmemoryDB.put("B", 10);
         inmemoryDB.rollback();
-        System.out.println(inmemoryDB.get("B")); // should return null
+        System.out.println(inmemoryDB.get("B")); 
     }
 }
